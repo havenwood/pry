@@ -7,19 +7,17 @@ class Pry
       import Ls
 
       command 'cd', 'Start a Pry session on VAR (use `cd ..` to go back and `cd /` to return to Pry top-level)',  
-              :keep_retval       => true,
-              :argument_required => true do |obj|
-        case obj
+      :argument_required => true do |argument|
+        case argument
         when ".."
-          throw(:breakout, opts[:nesting].level)
+          pry.binding_stack.size == 1 ? output.puts('At root of stack.') : pry.binding_stack.pop
         when "/"
-          throw(:breakout, 1) if opts[:nesting].level > 0
-          next
+          pry.binding_stack.slice! 1..-1  
         when "::"
-          TOPLEVEL_BINDING.pry
-          next
+          pry.binding_stack = [ TOPLEVEL_BINDING ]
         else
-          Pry.start target.eval(arg_string)
+          obj = target.eval arg_string
+          pry.binding_stack.push Pry.binding_for(obj)
         end
       end
 
@@ -52,8 +50,8 @@ class Pry
         end
       end
 
-      command "exit", "End the current Pry session. Accepts optional return value." do
-        throw :breakout
+      command "exit", "End the current Pry session. Accepts optional return value." do |value|
+        throw :breakout, value
       end
 
       command "exit-program", "End the current program. Aliases: quit-program, !!!" do
