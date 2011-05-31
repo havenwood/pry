@@ -27,18 +27,15 @@ class Pry
         end
       end
 
-      command "jump-to", "Jump to a Pry session further up the stack, exiting all sessions below." do |break_level|
-        break_level = break_level.to_i
-        nesting = opts[:nesting]
-
-        case break_level
-        when nesting.level
-          output.puts "Already at nesting level #{nesting.level}"
-        when (0...nesting.level)
-          throw(:breakout, break_level + 1)
+      command "jump-to", 
+              "Jump to a Pry session further up the stack, exiting all sessions below.",
+              :argument_required => true do |index|
+        
+        index = index.to_i
+        if (1..pry.binding_stack.size).include? index 
+          pry.binding_stack.slice! index..-1
         else
-          max_nest_level = nesting.level - 1
-          output.puts "Invalid nest level. Must be between 0 and #{max_nest_level}. Got #{break_level}."
+          output.puts "Stack isn't that big! Choose between 1..#{pry.binding_stack.size}"
         end
       end
 
