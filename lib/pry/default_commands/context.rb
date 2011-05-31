@@ -52,18 +52,9 @@ class Pry
         end
       end
 
-      command "exit", "End the current Pry session. Accepts optional return value. Aliases: quit, back" do
-        throw(:breakout, [opts[:nesting].level, target.eval(arg_string)])
+      command "exit", "End the current Pry session. Accepts optional return value." do
+        throw :breakout
       end
-
-      alias_command "quit", "exit", ""
-      alias_command "back", "exit", ""
-
-      command "exit-all", "End all nested Pry sessions. Accepts optional return value. Aliases: !!@" do
-        throw(:breakout, [0, target.eval(arg_string)])
-      end
-
-      alias_command "!!@", "exit-all", ""
 
       command "exit-program", "End the current program. Aliases: quit-program, !!!" do
         exit
