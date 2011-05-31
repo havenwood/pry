@@ -6,11 +6,10 @@ class Pry
     Context = Pry::CommandSet.new do
       import Ls
 
-      command "cd", "Start a Pry session on VAR (use `cd ..` to go back and `cd /` to return to Pry top-level)",  :keep_retval => true do |obj|
+      command 'cd', 'Start a Pry session on VAR (use `cd ..` to go back and `cd /` to return to Pry top-level)',  
+              :keep_retval       => true,
+              :argument_required => true do |obj|
         case obj
-        when nil
-          output.puts "Must provide an object."
-          next
         when ".."
           throw(:breakout, opts[:nesting].level)
         when "/"
