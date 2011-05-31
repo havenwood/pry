@@ -9,6 +9,7 @@ class Pry
   attr_accessor :exception_handler
   attr_accessor :hooks
   attr_accessor :custom_completions
+  attr_accessor :binding_stack
 
   # Returns the target binding for the session. Note that altering this
   # attribute will not change the target binding.
@@ -40,6 +41,7 @@ class Pry
       send "#{key}=", defaults[key]
     end
 
+    @binding_stack     = []
     @command_processor = CommandProcessor.new(self)
   end
 
@@ -106,26 +108,21 @@ class Pry
     target.eval("_pry_ = ::Pry.active_instance")
     target.eval("_ = ::Pry.last_result")
     self.session_target = target
+
+    @binding_stack.push target
   end
 
   # Clean-up after the repl session.
-  # @param [Binding] target The target binding for the session.
-  # @return [Object] The return value of the repl session (if one exists).
-  def repl_epilogue(target, nesting_level, break_data)
-    nesting.pop
+  # @param  [Binding] target The target binding for the session.
+  # @return [void]
+  def repl_epilogue(target)
     exec_hook :after_session, output, target
-
-    # If break_data is an array, then the last element is the return value
-    break_level, return_value = Array(break_data)
-
-    # keep throwing until we reach the desired nesting level
-    if nesting_level != break_level
-      throw :breakout, break_data
+    
+    if Pry.config.history.save
+      save_history
     end
 
-    save_history if Pry.config.history.save && finished_top_level_session?
-
-    return_value
+    @binding_stack = []
   end
 
   # Start a read-eval-print-loop.
@@ -137,24 +134,20 @@ class Pry
   # @example
   #   Pry.new.repl(Object.new)
   def repl(target=TOPLEVEL_BINDING)
-    target = Pry.binding_for(target)
-    target_self = target.eval('self')
+    target = Pry.binding_for target
+    target_self = target.eval 'self'
 
-    repl_prologue(target)
+    repl_prologue target
 
-    # cannot rely on nesting.level as
-    # nesting.level changes with new sessions
-    nesting_level = nesting.size
-
-    break_data = catch(:breakout) do
-      nesting.push [nesting.size, target_self, self]
+    status = catch :breakout do
       loop do
-        rep(target)
+        rep @binding_stack.last
       end
     end
 
-    return_value = repl_epilogue(target, nesting_level, break_data)
-    return_value || target_self
+    repl_epilogue target
+
+    status || target_self
   end
 
   # Perform a read-eval-print.
@@ -362,9 +355,9 @@ class Pry
   def select_prompt(first_line, target_self)
 
     if first_line
-      Array(prompt).first.call(target_self, nesting.level)
+      Array(prompt).first.call target_self, @binding_stack.size
     else
-      Array(prompt).last.call(target_self, nesting.level)
+      Array(prompt).last.call  target_self, @binding_stack.size
     end
   end
 
