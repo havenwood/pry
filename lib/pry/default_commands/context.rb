@@ -21,17 +21,9 @@ class Pry
         end
       end
 
-      command "nesting", "Show nesting information." do
-        nesting = opts[:nesting]
-
-        output.puts "Nesting status:"
-        output.puts "--"
-        nesting.each do |level, obj|
-          if level == 0
-            output.puts "#{level}. #{Pry.view_clip(obj)} (Pry top level)"
-          else
-            output.puts "#{level}. #{Pry.view_clip(obj)}"
-          end
+      command "show-stack", "Show binding stack information." do
+        pry.binding_stack.each.with_index do |bind, index|
+          output.puts "#{index+1}. #{Pry.view_clip(bind.eval("self"))}"
         end
       end
 
