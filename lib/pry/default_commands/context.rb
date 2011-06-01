@@ -39,8 +39,8 @@ class Pry
         end
       end
 
-      command "exit", "End the current Pry session. Accepts optional return value." do |value|
-        throw :breakout, value
+      command "exit", "End the current Pry session. Accepts optional return value." do
+        throw :breakout, target.eval(opts[:arg_string])
       end
 
       command "exit-program", "End the current program. Aliases: quit-program, !!!" do
