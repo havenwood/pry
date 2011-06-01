@@ -90,7 +90,6 @@ class Pry
         :val => val,
         :arg_string => arg_string,
         :eval_string => eval_string,
-        :nesting => nesting,
         :commands => commands.commands,
         :captures => captures
       }
