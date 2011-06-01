@@ -154,6 +154,10 @@ class Pry
   # @example
   #   Pry.new.re(Object.new)
   def re(target=TOPLEVEL_BINDING)
+    if @binding_stack.empty?
+      @binding_stack.push target
+    end
+
     target = Pry.binding_for(target)
 
     if input == Readline
