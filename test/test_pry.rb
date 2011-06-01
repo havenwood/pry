@@ -172,25 +172,6 @@ describe Pry do
         end
       end
 
-      describe "nesting" do
-        after do
-          Pry.reset_defaults
-          Pry.color = false
-        end
-
-        it 'should nest properly' do
-          Pry.input = InputTester.new("pry", "pry", "pry", "\"nest:\#\{Pry.nesting.level\}\"", "exit_all")
-
-          str_output = StringIO.new
-          Pry.output = str_output
-
-          o = Object.new
-
-          pry_tester = o.pry
-          str_output.string.should =~ /nest:3/
-        end
-      end
-
       describe "defining methods" do
         it 'should define a method on the singleton class of an object when performing "def meth;end" inside the object' do
           [Object.new, {}, []].each do |val|
@@ -573,7 +554,7 @@ describe Pry do
                 end
               end
 
-              klass.commands.include?("nesting").should == true
+              klass.commands.include?("show-stack").should == true
               klass.commands.include?("jump-to").should == true
               klass.commands.include?("cd").should == true
               klass.commands.include?("v").should == true
@@ -690,7 +671,7 @@ describe Pry do
                 delete "ls"
               end
 
-              klass.commands.include?("nesting").should == true
+              klass.commands.include?("show-stack").should == true
               klass.commands.include?("jump-to").should == true
               klass.commands.include?("cd").should == true
               klass.commands.include?("v").should == true
@@ -747,25 +728,27 @@ describe Pry do
             str_output.string.should == "test\n"
           end
 
+
           describe "pry return values" do
             it 'should return the target object' do
               Pry.start(self, :input => StringIO.new("exit"), :output => Pry::NullOutput).should == self
             end
 
-            it 'should return the parameter given to exit' do
+            it 'should return the parameter given to exit' do 
               Pry.start(self, :input => StringIO.new("exit 10"), :output => Pry::NullOutput).should == 10
             end
 
             it 'should return the parameter (multi word string) given to exit' do
-              Pry.start(self, :input => StringIO.new("exit \"john mair\""), :output => Pry::NullOutput).should == "john mair"
+              ret = Pry.start(self, :input => StringIO.new("exit 'john mair'"), :output => Pry::NullOutput).should == 'john mair'
             end
 
             it 'should return the parameter (function call) given to exit' do
-              Pry.start(self, :input => StringIO.new("exit 'abc'.reverse"), :output => Pry::NullOutput).should == 'cba'
+              Pry.start(self, :input => StringIO.new("exit 'abc'.reverse"), :output => Pry::NullOutput).should == "cba"
             end
 
             it 'should return the parameter (self) given to exit' do
-              Pry.start("carl", :input => StringIO.new("exit self"), :output => Pry::NullOutput).should == "carl"
+              ret = Pry.start("carl", :input => StringIO.new("exit self"), :output => Pry::NullOutput)
+              ret.should == "carl"
             end
           end
 

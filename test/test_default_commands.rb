@@ -20,11 +20,11 @@ describe "Pry::Commands" do
       push_first_hist_line.call(@hist, "'bug in 1.8 means this line is ignored'")
       @hist.push "hello"
       @hist.push "world"
-      str_output = StringIO.new
-      redirect_pry_io(InputTester.new("hist", "exit-all"), str_output) do
+      output = StringIO.new
+      redirect_pry_io InputTester.new("hist", "exit"), output do
         pry
       end
-      str_output.string.should =~ /hello\n.*world/
+      output.string.should =~ /hello\n.*world/
     end
 
     it 'should replay history correctly (single item)' do
@@ -33,10 +33,10 @@ describe "Pry::Commands" do
       @hist.push ":bucket"
       @hist.push ":ostrich"
       str_output = StringIO.new
-      redirect_pry_io(InputTester.new("hist --replay -1", "exit-all"), str_output) do
+      redirect_pry_io(InputTester.new("hist --replay 1", "exit"), str_output) do
         pry
       end
-      str_output.string.should =~ /ostrich/
+      str_output.string.should =~ /blah/
     end
 
     it 'should replay a range of history correctly (range of items)' do
@@ -44,7 +44,7 @@ describe "Pry::Commands" do
       @hist.push ":hello"
       @hist.push ":carl"
       str_output = StringIO.new
-      redirect_pry_io(InputTester.new("hist --replay 0..2", "exit-all"), str_output) do
+      redirect_pry_io(InputTester.new("hist --replay 0..2", "exit"), str_output) do
         pry
       end
       str_output.string.should =~ /:hello\n.*:carl/
@@ -60,7 +60,7 @@ describe "Pry::Commands" do
       @hist.push "grape"
 
       str_output = StringIO.new
-      redirect_pry_io(InputTester.new("hist --grep o", "exit-all"), str_output) do
+      redirect_pry_io(InputTester.new("hist --grep o", "exit"), str_output) do
         pry
       end
 
@@ -74,7 +74,7 @@ describe "Pry::Commands" do
       end
 
       str_output = StringIO.new
-      redirect_pry_io(InputTester.new("hist --tail 3", "exit-all"), str_output) do
+      redirect_pry_io(InputTester.new("hist --tail 3", "exit"), str_output) do
         pry
       end
 
@@ -91,7 +91,7 @@ describe "Pry::Commands" do
       end
 
       str_output = StringIO.new
-      redirect_pry_io(InputTester.new("hist --head 4", "exit-all"), str_output) do
+      redirect_pry_io(InputTester.new("hist --head 4", "exit"), str_output) do
         pry
       end
 
@@ -108,7 +108,7 @@ describe "Pry::Commands" do
       end
 
       str_output = StringIO.new
-      redirect_pry_io(InputTester.new("hist --show 1..4", "exit-all"), str_output) do
+      redirect_pry_io(InputTester.new("hist --show 1..4", "exit"), str_output) do
         pry
       end
 
@@ -120,7 +120,7 @@ describe "Pry::Commands" do
   describe "show-method" do
     it 'should output a method\'s source' do
       str_output = StringIO.new
-      redirect_pry_io(InputTester.new("show-method sample_method", "exit-all"), str_output) do
+      redirect_pry_io(InputTester.new("show-method sample_method", "exit"), str_output) do
         pry
       end
 
@@ -129,7 +129,7 @@ describe "Pry::Commands" do
 
     it 'should output a method\'s source with line numbers' do
       str_output = StringIO.new
-      redirect_pry_io(InputTester.new("show-method -l sample_method", "exit-all"), str_output) do
+      redirect_pry_io(InputTester.new("show-method -l sample_method", "exit"), str_output) do
         pry
       end
 
@@ -141,7 +141,7 @@ describe "Pry::Commands" do
 
       o = Object.new
       def o.sample
-        redirect_pry_io(InputTester.new("show-method", "exit-all"), $str_output) do
+        redirect_pry_io(InputTester.new("show-method", "exit"), $str_output) do
           binding.pry
         end
       end
@@ -156,7 +156,7 @@ describe "Pry::Commands" do
 
       o = Object.new
       def o.sample
-        redirect_pry_io(InputTester.new("show-method -l", "exit-all"), $str_output) do
+        redirect_pry_io(InputTester.new("show-method -l", "exit"), $str_output) do
           binding.pry
         end
       end
@@ -171,7 +171,7 @@ describe "Pry::Commands" do
     if RUBY_VERSION =~ /1.9/
       it 'should output a method\'s source for a method defined inside pry' do
         str_output = StringIO.new
-        redirect_pry_io(InputTester.new("def dyna_method", ":testing", "end", "show-method dyna_method"), str_output) do
+        redirect_pry_io(InputTester.new("def dyna_method", ":testing", "end", "show-method dyna_method", "exit"), str_output) do
           TOPLEVEL_BINDING.pry
         end
 
@@ -181,7 +181,7 @@ describe "Pry::Commands" do
 
       it 'should output a method\'s source for a method defined inside pry, even if exceptions raised before hand' do
         str_output = StringIO.new
-        redirect_pry_io(InputTester.new("bad code", "123", "bad code 2", "1 + 2", "def dyna_method", ":testing", "end", "show-method dyna_method"), str_output) do
+        redirect_pry_io(InputTester.new("bad code", "123", "bad code 2", "1 + 2", "def dyna_method", ":testing", "end", "show-method dyna_method", "exit"), str_output) do
           TOPLEVEL_BINDING.pry
         end
 
@@ -191,7 +191,7 @@ describe "Pry::Commands" do
 
       it 'should output an instance method\'s source for a method defined inside pry' do
         str_output = StringIO.new
-        redirect_pry_io(InputTester.new("class A", "def yo", "end", "end", "show-method A#yo"), str_output) do
+        redirect_pry_io(InputTester.new("class A", "def yo", "end", "end", "show-method A#yo", "exit"), str_output) do
           TOPLEVEL_BINDING.pry
         end
 
@@ -201,7 +201,7 @@ describe "Pry::Commands" do
 
       it 'should output an instance method\'s source for a method defined inside pry using define_method' do
         str_output = StringIO.new
-        redirect_pry_io(InputTester.new("class A", "define_method(:yup) {}", "end", "end", "show-method A#yup"), str_output) do
+        redirect_pry_io(InputTester.new("class A", "define_method(:yup) {}", "end", "end", "show-method A#yup", "exit"), str_output) do
           TOPLEVEL_BINDING.pry
         end
 
@@ -214,7 +214,7 @@ describe "Pry::Commands" do
   describe "show-doc" do
     it 'should output a method\'s documentation' do
       str_output = StringIO.new
-      redirect_pry_io(InputTester.new("show-doc sample_method", "exit-all"), str_output) do
+      redirect_pry_io(InputTester.new("show-doc sample_method", "exit"), str_output) do
         pry
       end
 
@@ -226,7 +226,7 @@ describe "Pry::Commands" do
 
       o = Object.new
       def o.sample
-        redirect_pry_io(InputTester.new("show-doc", "exit-all"), $str_output) do
+        redirect_pry_io(InputTester.new("show-doc", "exit"), $str_output) do
           binding.pry
         end
       end
@@ -243,7 +243,7 @@ describe "Pry::Commands" do
       b = Pry.binding_for(Object.new)
       b.eval("x = :mon_ouie")
 
-      redirect_pry_io(InputTester.new("cd x", "$obj = self", "exit-all"), StringIO.new) do
+      redirect_pry_io(InputTester.new("cd x", "$obj = self", "exit"), StringIO.new) do
         b.pry
       end
 
@@ -254,7 +254,7 @@ describe "Pry::Commands" do
       b = Pry.binding_for(:outer)
       b.eval("x = :inner")
 
-      redirect_pry_io(InputTester.new("cd x", "$inner = self;", "cd ..", "$outer = self", "exit-all"), StringIO.new) do
+      redirect_pry_io(InputTester.new("cd x", "$inner = self;", "cd ..", "$outer = self", "exit"), StringIO.new) do
         b.pry
       end
       $inner.should == :inner
@@ -265,7 +265,7 @@ describe "Pry::Commands" do
       b = Pry.binding_for(:outer)
       b.eval("x = :inner")
 
-      redirect_pry_io(InputTester.new("cd x", "$inner = self;", "cd 5", "$five = self", "cd /", "$outer = self", "exit-all"), StringIO.new) do
+      redirect_pry_io(InputTester.new("cd x", "$inner = self;", "cd 5", "$five = self", "cd /", "$outer = self", "exit"), StringIO.new) do
         b.pry
       end
       $inner.should == :inner
@@ -276,7 +276,7 @@ describe "Pry::Commands" do
     it 'should start a session on TOPLEVEL_BINDING with cd ::' do
       b = Pry.binding_for(:outer)
 
-      redirect_pry_io(InputTester.new("cd ::", "$obj = self", "exit-all"), StringIO.new) do
+      redirect_pry_io(InputTester.new("cd ::", "$obj = self", "exit"), StringIO.new) do
         5.pry
       end
       $obj.should == TOPLEVEL_BINDING.eval('self')
@@ -288,7 +288,7 @@ describe "Pry::Commands" do
         :mon_ouie
       end
 
-      redirect_pry_io(InputTester.new("cd hello 1, 2, 3", "$obj = self", "exit-all"), StringIO.new) do
+      redirect_pry_io(InputTester.new("cd hello 1, 2, 3", "$obj = self", "exit"), StringIO.new) do
         o.pry
       end
       $obj.should == :mon_ouie
@@ -345,7 +345,7 @@ describe "Pry::Commands" do
   describe "help" do
     it 'should display help for a specific command' do
       str_output = StringIO.new
-      redirect_pry_io(InputTester.new("help ls", "exit-all"), str_output) do
+      redirect_pry_io(InputTester.new("help ls", "exit"), str_output) do
         pry
       end
       str_output.string.each_line.count.should == 1
