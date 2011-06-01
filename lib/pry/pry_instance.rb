@@ -26,7 +26,8 @@ class Pry
   # @option options [Proc] :print The Proc to use for the 'print'
   #   component of the REPL. (see print.rb)
   def initialize(options={})
-    refresh(options)
+    refresh(options)    
+    @binding_stack     = []
     @command_processor = CommandProcessor.new(self)
   end
 
@@ -49,9 +50,6 @@ class Pry
     defaults.merge!(options).each do |key, value|
       send "#{key}=", value
     end
-
-    @binding_stack     = []
-    @command_processor = CommandProcessor.new(self)
     
     true
   end
