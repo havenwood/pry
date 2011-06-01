@@ -65,32 +65,6 @@ class Pry
     end
   end
 
-  # Get nesting data.
-  # This method should not need to be accessed directly.
-  # @return [Array] The unparsed nesting information.
-  def nesting
-    self.class.nesting
-  end
-
-  # Set nesting data.
-  # This method should not need to be accessed directly.
-  # @param v nesting data.
-  def nesting=(v)
-    self.class.nesting = v
-  end
-
-  # @return [Boolean] Whether top-level session has ended.
-  def finished_top_level_session?
-    nesting.empty?
-  end
-
-  # Return parent of current Pry session.
-  # @return [Pry] The parent of the current Pry session.
-  def parent
-    idx = Pry.sessions.index(self)
-    Pry.sessions[idx - 1] if idx && idx > 0
-  end
-
   # Execute the hook `hook_name`, if it is defined.
   # @param [Symbol] hook_name The hook to execute
   # @param [Array] args The arguments to pass to the hook.
