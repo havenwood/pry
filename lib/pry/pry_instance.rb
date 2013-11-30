@@ -176,6 +176,8 @@ class Pry
   # @return [Array<String>] Possible completions
   def complete(input)
     Pry.critical_section do
+      dir_path = $LOAD_PATH.find { |path| File.directory?("#{path}/#{input}") }
+      Dir.chdir(dir_path) if dir_path # TODO: Set new target dir without changing dirs.
       Pry.config.completer.call(input, :target => current_binding,
                                        :pry  => self,
                                        :custom_completions => instance_eval(&custom_completions))
